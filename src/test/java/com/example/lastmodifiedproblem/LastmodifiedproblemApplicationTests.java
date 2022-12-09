@@ -21,12 +21,12 @@ class LastmodifiedproblemApplicationTests {
 
         assertThat(savedPost.getCreatedAt()).isEqualTo(savedPost.getUpdatedAt());
 
-        var beforeUpdatePost = blogPostRepository.findById(savedPost.getId());
+        var beforeUpdatePost = blogPostRepository.findById(savedPost.getId()).get();
 
-        assertThat(savedPost.getCreatedAt()).isEqualTo(beforeUpdatePost.get().getCreatedAt());
+        assertThat(savedPost.getCreatedAt()).isEqualTo(beforeUpdatePost.getCreatedAt());
 
-        savedPost.setTitle("newTitle");
-        var updatedPost = blogPostRepository.save(savedPost);
+        beforeUpdatePost.setTitle("newTitle");
+        var updatedPost = blogPostRepository.save(beforeUpdatePost);
 
         assertThat(updatedPost.getCreatedAt()).isEqualTo(savedPost.getCreatedAt());
         assertThat(updatedPost.getUpdatedAt()).isAfter(savedPost.getUpdatedAt());
