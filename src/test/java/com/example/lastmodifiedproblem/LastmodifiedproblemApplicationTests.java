@@ -1,8 +1,13 @@
 package com.example.lastmodifiedproblem;
 
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.time.Instant;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -10,26 +15,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LastmodifiedproblemApplicationTests {
 
     @Autowired
-    private BlogPostRepository blogPostRepository;
+    EntityManager em;
 
     @Test
-    void shouldUpdateLastModifiedDateCorrectly() {
-        var post = new BlogPost();
-        post.setTitle("test");
+    @Transactional
+    void persistsAndLoadsInstant() {
+        EntityWithInstant entity = new EntityWithInstant();
+        entity.id = UUID.randomUUID();
+        entity.instant = Instant.now();
 
-        var savedPost = blogPostRepository.save(post);
+        em.persist(entity);
 
-        assertThat(savedPost.getCreatedAt()).isEqualTo(savedPost.getUpdatedAt());
+        em.flush();
+        em.clear();
 
-        var beforeUpdatePost = blogPostRepository.findById(savedPost.getId()).get();
+        EntityWithInstant reloaded = em.find(EntityWithInstant.class, entity.id);
 
-        assertThat(savedPost.getCreatedAt()).isEqualTo(beforeUpdatePost.getCreatedAt());
-
-        beforeUpdatePost.setTitle("newTitle");
-        var updatedPost = blogPostRepository.save(beforeUpdatePost);
-
-        assertThat(updatedPost.getCreatedAt()).isEqualTo(savedPost.getCreatedAt());
-        assertThat(updatedPost.getUpdatedAt()).isAfter(savedPost.getUpdatedAt());
+        assertThat(entity.instant).isEqualTo(reloaded.instant);
     }
-
 }
